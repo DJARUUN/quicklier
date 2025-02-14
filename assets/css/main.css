@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme inline {
+	--color-bg: oklch(0.1829 0.0127 270.63);
+	--color-border: oklch(0.3088 0.0124 264.31);
+	--color-fg: var(--color-zinc-100);
+
+	--font-normal: "Figtree", sans-serif;
+}
+
+@layer base {
+	body {
+		@apply bg-bg text-fg font-normal;
+	}
+}

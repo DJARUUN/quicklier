@@ -2,17 +2,17 @@
 const route = useRoute();
 const router = useRouter();
 
-const generatedCode = ref([]);
+const generatedCode = ref<number[][]>([]);
 const initialContent = route.query.c || "";
 const visibleCells = ref(new Set());
 
 if (route.query.c) {
   const content = route.query.c;
-  const { data } = await useFetch(`/api/generate/${content}`);
+  const { data }: any = await useFetch(`/api/generate/${content}`);
   generatedCode.value = data.value.generatedCode;
 }
 
-const newContent = ref(decodeURIComponent(initialContent));
+const newContent = ref(decodeURIComponent(initialContent.toString()));
 const newContentBase64 = computed(() => encodeURIComponent(newContent.value));
 
 const baseUrl = "/api/generate/";
@@ -121,10 +121,12 @@ function handleDownloadCode() {
   img.src = url;
 }
 
-const container = ref();
-const qrContainer = ref();
+const container = ref<HTMLDivElement>();
+const qrContainer = ref<HTMLDivElement>();
 
 function handleQrContainerSizing() {
+  if (!container.value || !qrContainer.value) return;
+
   const containerRect = container.value.getBoundingClientRect();
   const qrContainerRect = qrContainer.value.getBoundingClientRect();
 
@@ -140,8 +142,11 @@ function handleQrContainerSizing() {
 onMounted(() => {
   window.addEventListener("resize", handleQrContainerSizing);
 
-  qrContainer.value.style.opacity = "100%";
-  qrContainer.value.style.filter = "blur(0px)";
+  if (qrContainer.value) {
+    qrContainer.value.style.opacity = "100%";
+    qrContainer.value.style.filter = "blur(0px)";
+  }
+
   handleQrContainerSizing();
 
   animateBlocks();

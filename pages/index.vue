@@ -1,15 +1,21 @@
 <script setup lang="ts">
+import Button from '~/components/Button.vue';
+import type { Grid } from '~/shared/types';
+
 const route = useRoute();
 const router = useRouter();
 
-const generatedCode = ref<number[][]>([]);
+const generatedCode = ref<Grid>([]);
 const initialContent = route.query.c || "";
 const visibleCells = ref(new Set());
 
 if (route.query.c) {
   const content = route.query.c;
-  const { data }: any = await useFetch(`/api/generate/${content}`);
-  generatedCode.value = data.value.generatedCode;
+  const { data } = await useFetch(`/api/generate/${content}`);
+
+  if (data.value && "generatedCode" in data.value) {
+    generatedCode.value = data.value.generatedCode;
+  }
 }
 
 const newContent = ref(decodeURIComponent(initialContent.toString()));
@@ -159,176 +165,59 @@ onUnmounted(() =>
 
 <template>
   <div class="gap-6 pb-6 size-full grid grid-rows-[auto_1fr] relative">
-    <form
-      @submit.prevent="handleGenerateCode"
-      class="flex flex-col gap-3"
-      method="GET"
-      :action="fetchUrl"
-    >
+    <form @submit.prevent="handleGenerateCode" class="flex flex-col gap-3" method="GET" :action="fetchUrl">
       <label for="content">Content</label>
-      <textarea
-        class="border border-border px-2 py-1"
-        name="content"
-        id="content"
-        v-model="newContent"
-      ></textarea>
+      <textarea class="border border-border px-2 py-1 bg-bg" name="content" id="content"
+        v-model="newContent"></textarea>
 
-      <button
-        class="border border-border px-2 not-disabled:hover:bg-fg not-disabled:hover:text-bg cursor-pointer flex gap-2 justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed h-9 transition-all ease-out"
-        type="submit"
-        :disabled="!isValidUrl || isPending"
-      >
-        <template v-if="isPending">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="1em"
-            height="1em"
-            viewBox="0 0 24 24"
-            class="size-3.5"
-          >
-            <g stroke="currentColor">
-              <circle
-                cx="12"
-                cy="12"
-                r="9.5"
-                fill="none"
-                stroke-linecap="round"
-                stroke-width="2.3"
-              >
-                <animate
-                  attributeName="stroke-dasharray"
-                  calcMode="spline"
-                  dur="1.5s"
-                  keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1"
-                  keyTimes="0;0.475;0.95;1"
-                  repeatCount="indefinite"
-                  values="0 150;42 150;42 150;42 150"
-                ></animate>
-                <animate
-                  attributeName="stroke-dashoffset"
-                  calcMode="spline"
-                  dur="1.5s"
-                  keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1"
-                  keyTimes="0;0.475;0.95;1"
-                  repeatCount="indefinite"
-                  values="0;-16;-59;-59"
-                ></animate>
-              </circle>
-              <animateTransform
-                attributeName="transform"
-                dur="2s"
-                repeatCount="indefinite"
-                type="rotate"
-                values="0 12 12;360 12 12"
-              ></animateTransform>
-            </g>
-          </svg>
-          <span>Generating</span>
-        </template>
-        <template v-else>
-          <span>Generate</span>
-        </template>
-      </button>
+      <Button type="submit" :disable="!isValidUrl || isPending" :isPending="isPending">
+        <template #pending>Generating</template>
+        Generate
+      </Button>
     </form>
 
-    <div
-      ref="container"
-      class="grid size-full overflow-hidden"
-    >
-      <div
-        ref="qrContainer"
-        class="aspect-square bg-fg rounded-xl p-3 w-fit h-full opacity-0 transition-all ease-out blur-xs grid m-auto relative group/qr"
-        :class="{ 'animate-pulse': isPending }"
-      >
-        <svg
-          v-if="isPending"
-          xmlns="http://www.w3.org/2000/svg"
-          width="1em"
-          height="1em"
-          viewBox="0 0 24 24"
-          class="size-6 text-bg m-auto"
-        >
+    <div ref="container" class="grid size-full overflow-hidden">
+      <div ref="qrContainer"
+        class="aspect-square bg-fg rounded-xl p-3 w-fit h-full opacity-0 transition-all ease-out blur-xs grid m-auto relative group/qr max-h-[75%] shadow-lg shadow-fg/10"
+        :class="{ 'animate-pulse': isPending }">
+        <svg v-if="isPending" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"
+          class="size-6 text-bg m-auto">
           <g stroke="currentColor">
-            <circle
-              cx="12"
-              cy="12"
-              r="9.5"
-              fill="none"
-              stroke-linecap="round"
-              stroke-width="2.3"
-            >
-              <animate
-                attributeName="stroke-dasharray"
-                calcMode="spline"
-                dur="1.5s"
-                keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1"
-                keyTimes="0;0.475;0.95;1"
-                repeatCount="indefinite"
-                values="0 150;42 150;42 150;42 150"
-              ></animate>
-              <animate
-                attributeName="stroke-dashoffset"
-                calcMode="spline"
-                dur="1.5s"
-                keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1"
-                keyTimes="0;0.475;0.95;1"
-                repeatCount="indefinite"
-                values="0;-16;-59;-59"
-              ></animate>
+            <circle cx="12" cy="12" r="9.5" fill="none" stroke-linecap="round" stroke-width="2.3">
+              <animate attributeName="stroke-dasharray" calcMode="spline" dur="1.5s"
+                keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1"
+                repeatCount="indefinite" values="0 150;42 150;42 150;42 150"></animate>
+              <animate attributeName="stroke-dashoffset" calcMode="spline" dur="1.5s"
+                keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1"
+                repeatCount="indefinite" values="0;-16;-59;-59"></animate>
             </circle>
-            <animateTransform
-              attributeName="transform"
-              dur="2s"
-              repeatCount="indefinite"
-              type="rotate"
-              values="0 12 12;360 12 12"
-            ></animateTransform>
+            <animateTransform attributeName="transform" dur="2s" repeatCount="indefinite" type="rotate"
+              values="0 12 12;360 12 12"></animateTransform>
           </g>
         </svg>
 
         <template v-else>
-          <button
-            @click="handleDownloadCode"
-            class="group group-hover/qr:opacity-100 group-hover/qr:blur-none opacity-0 blur-xs transition-all ease-out border border-border bg-bg not-disabled:hover:bg-fg not-disabled:hover:text-bg cursor-pointer flex gap-2 justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed w-9 h-9 hover:w-auto text-fg hover:pl-3.5 hover:pr-3 rounded-md shadow-md shadow-bg/15 absolute bottom-3 right-3"
-          >
+          <Button @click="handleDownloadCode"
+            class="group group-hover/qr:opacity-100 group-hover/qr:blur-none opacity-0 blur-xs w-9 h-9 hover:w-auto hover:pl-3.5 hover:pr-3 rounded-lg shadow-md shadow-bg/15 absolute bottom-1.5 right-1.5 z-10 text-fg bg-bg">
             <p class="hidden group-hover:block font-medium text-sm">Download PNG</p>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              class="size-4.5"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" class="size-4.5">
               <g fill="currentColor">
-                <path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129z" />
-                <path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25z" />
+                <path
+                  d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129z" />
+                <path
+                  d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25z" />
               </g>
             </svg>
-          </button>
+          </Button>
 
-          <svg
-            :viewBox="viewBox"
-            xmlns="http://www.w3.org/2000/svg"
-            class="size-full"
-            ref="qrSvg"
-          >
-            <g
-              v-for="(row, rowIndex) in generatedCode"
-              :key="rowIndex"
-            >
-              <rect
-                v-for="(cell, colIndex) in row"
-                :key="colIndex"
-                :x="colIndex * (cellSize + gap)"
-                :y="rowIndex * (cellSize + gap)"
-                :width="cellSize"
-                :height="cellSize"
+          <svg :viewBox="viewBox" xmlns="http://www.w3.org/2000/svg" class="size-full rounded-lg" ref="qrSvg">
+            <g v-for="(row, rowIndex) in generatedCode" :key="rowIndex">
+              <rect v-for="(cell, colIndex) in row" :key="colIndex" :x="colIndex * (cellSize + gap)"
+                :y="rowIndex * (cellSize + gap)" :width="cellSize" :height="cellSize"
                 :fill="(cell.toString() === '1' || cell.toString() === '8') ? 'var(--color-bg)' : 'transparent'"
-                class="transition-all ease-out duration-300"
-                :style="visibleCells.has(rowIndex * row.length + colIndex)
-                ? 'transform: scale(1); opacity: 1; filter: blur(0px);'
-                : 'transform: scale(0); opacity: 0; filter: blur(2px);'"
-              />
+                class="transition-all ease-out duration-300" :style="visibleCells.has(rowIndex * row.length + colIndex)
+                  ? 'transform: scale(1); opacity: 1; filter: blur(0px);'
+                  : 'transform: scale(0); opacity: 0; filter: blur(2px);'" />
             </g>
           </svg>
         </template>

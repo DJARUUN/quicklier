@@ -10,6 +10,6 @@
 
 @layer base {
 	body {
-		@apply bg-bg text-fg font-normal;
+		@apply bg-black text-fg font-normal;
 	}
 }

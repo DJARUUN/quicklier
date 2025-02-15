@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div class="p-6 h-dvh w-full overflow-hidden">
+    <NuxtLayout>
       <NuxtPage />
-    </div>
+    </NuxtLayout>
 
     <NuxtRouteAnnouncer />
     <NuxtLoadingIndicator />

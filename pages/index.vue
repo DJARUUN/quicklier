@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Button from '~/components/Button.vue';
 import type { Grid } from '~/shared/types';
 
 const route = useRoute();
@@ -11,7 +10,7 @@ const visibleCells = ref(new Set());
 
 if (route.query.c) {
   const content = route.query.c;
-  const { data } = await useFetch(`/api/generate/${content}`);
+  const { data } = await useFetch("/api/generate", { method: "POST", body: { content: encodeURIComponent(content.toString()) } });
 
   if (data.value && "generatedCode" in data.value) {
     generatedCode.value = data.value.generatedCode;
@@ -21,14 +20,10 @@ if (route.query.c) {
 const newContent = ref(decodeURIComponent(initialContent.toString()));
 const newContentBase64 = computed(() => encodeURIComponent(newContent.value));
 
-const baseUrl = "/api/generate/";
-const fetchUrl = computed(() => `${baseUrl}${newContentBase64.value}`);
-const isValidUrl = computed(() => fetchUrl.value !== baseUrl);
-
 const isPending = ref(false);
 
 const cellSize = 10;
-const gap = 1;
+const gap = 0;
 
 const viewBox = computed(() => {
   const rows = generatedCode.value.length || 25;
@@ -73,13 +68,11 @@ function animateBlocks() {
 }
 
 async function handleGenerateCode() {
-  if (!isValidUrl.value) return;
-
   isPending.value = true;
   generatedCode.value = [];
   visibleCells.value.clear();
 
-  const result: any = await $fetch(fetchUrl.value);
+  const result: any = await $fetch("/api/generate", { method: "POST", body: { content: newContentBase64.value } });
   if ("errors" in result) {
     console.error(result.errors);
     return;
@@ -165,12 +158,12 @@ onUnmounted(() =>
 
 <template>
   <div class="gap-6 pb-6 size-full grid grid-rows-[auto_1fr] relative">
-    <form @submit.prevent="handleGenerateCode" class="flex flex-col gap-3" method="GET" :action="fetchUrl">
+    <form @submit.prevent="handleGenerateCode" class="flex flex-col gap-3">
       <label for="content">Content</label>
       <textarea class="border border-border px-2 py-1 bg-bg" name="content" id="content"
         v-model="newContent"></textarea>
 
-      <Button type="submit" :disable="!isValidUrl || isPending" :isPending="isPending">
+      <Button type="submit" :disable="isPending" :isPending="isPending">
         <template #pending>Generating</template>
         Generate
       </Button>
@@ -214,8 +207,8 @@ onUnmounted(() =>
             <g v-for="(row, rowIndex) in generatedCode" :key="rowIndex">
               <rect v-for="(cell, colIndex) in row" :key="colIndex" :x="colIndex * (cellSize + gap)"
                 :y="rowIndex * (cellSize + gap)" :width="cellSize" :height="cellSize"
-                :fill="(cell.toString() === '1' || cell.toString() === '8') ? 'var(--color-bg)' : 'transparent'"
-                class="transition-all ease-out duration-300" :style="visibleCells.has(rowIndex * row.length + colIndex)
+                :fill="cell === 1 ? 'var(--color-bg)' : 'transparent'" class="transition-all ease-out duration-300"
+                :style="visibleCells.has(rowIndex * row.length + colIndex)
                   ? 'transform: scale(1); opacity: 1; filter: blur(0px);'
                   : 'transform: scale(0); opacity: 0; filter: blur(2px);'" />
             </g>

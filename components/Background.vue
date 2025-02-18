@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Particles Background from Inspira UI
- * https://inspira-ui.com/components/backgrounds/particles-bg 
+ * https://inspira-ui.com/components/backgrounds/particles-bg
  */
 
 import { useMouse, useDevicePixelRatio } from "@vueuse/core";

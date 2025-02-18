@@ -2,12 +2,13 @@ import type { Grid } from "./types";
 
 export function createAsciiQrCode(grid: Grid) {
   const blocks = {
-    "0": "__",
-    "1": "[]",
     "-1": "..",
-    "-2": ",,",
-    "8": "{}",
-    "9": "--",
+    "2": "__",
+    "3": "[]",
+    "4": "::",
+    "5": ",,",
+    "6": "--",
+    "7": "()",
   };
 
   const code = [];
@@ -26,3 +27,5 @@ export function createAsciiQrCode(grid: Grid) {
 
   return code.join("\n");
 }
+
+export const flipGrid = (grid: Grid) => grid.map((row) => row.toReversed()).toReversed();
